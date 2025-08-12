@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import FileUpload from '@/components/FileUpload';
+import APISettings from '@/components/APISettings';
+import { getOpenAIService, isOpenAIConfigured } from '@/services/openai';
 
 const Index = () => {
   const [workType, setWorkType] = useState('');
@@ -25,6 +27,11 @@ const Index = () => {
   const [homeworkLevel, setHomeworkLevel] = useState('');
   const [selectedTariff, setSelectedTariff] = useState('');
   const [isProcessingHomework, setIsProcessingHomework] = useState(false);
+  const [showAPISettings, setShowAPISettings] = useState(false);
+  const [apiConfigured, setApiConfigured] = useState(false);
+  const [generatedWork, setGeneratedWork] = useState<string>('');
+  const [homeworkSolution, setHomeworkSolution] = useState<string>('');
+  const [plagiarismReport, setPlagiarismReport] = useState<string>('');
 
   const workTypes = [
     { value: 'essay', label: 'Реферат', description: 'Краткое изложение темы, 10-15 страниц' },
@@ -130,29 +137,100 @@ const Index = () => {
     if (!workType || !topic) return;
     
     setIsGenerating(true);
-    // Имитация генерации
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsGenerating(false);
+    setGeneratedWork('');
+    
+    try {
+      if (isOpenAIConfigured()) {
+        const openAI = getOpenAIService();
+        const result = await openAI.generateAcademicWork({
+          workType,
+          topic,
+          requirements,
+          pages
+        });
+        setGeneratedWork(result);
+      } else {
+        // Имитация генерации
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        setGeneratedWork(`Пример генерации ${workType} на тему: "${topic}"
+
+Введение:
+Тема ${topic} является одной из актуальных в современном мире...
+
+Основная часть:
+1. Анализ проблемы...
+2. Методы исследования...
+
+Для полной генерации настройте OpenAI API.`);
+      }
+    } catch (error) {
+      console.error('Error generating work:', error);
+      setGeneratedWork('Ошибка генерации. Проверьте настройки API.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handlePlagiarismCheck = async () => {
     if (!plagiarismText.trim()) return;
     
     setIsChecking(true);
-    // Имитация проверки
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const score = Math.floor(Math.random() * 30) + 70; // 70-100% уникальности
-    setUniquenessScore(score);
-    setIsChecking(false);
+    setPlagiarismReport('');
+    
+    try {
+      if (isOpenAIConfigured()) {
+        const openAI = getOpenAIService();
+        const result = await openAI.checkPlagiarism(plagiarismText);
+        setUniquenessScore(result.uniqueness);
+        setPlagiarismReport(result.report);
+      } else {
+        // Имитация проверки
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const score = Math.floor(Math.random() * 30) + 70;
+        setUniquenessScore(score);
+        setPlagiarismReport('Пример отчета об уникальности. Для полного анализа настройте OpenAI API.');
+      }
+    } catch (error) {
+      console.error('Error checking plagiarism:', error);
+      setUniquenessScore(0);
+      setPlagiarismReport('Ошибка проверки. Проверьте настройки API.');
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   const handleHomeworkSolve = async () => {
     if (!homeworkSubject || !homeworkTask) return;
     
     setIsProcessingHomework(true);
-    // Имитация решения
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsProcessingHomework(false);
+    setHomeworkSolution('');
+    
+    try {
+      if (isOpenAIConfigured()) {
+        const openAI = getOpenAIService();
+        const result = await openAI.solveHomework({
+          subject: homeworkSubject,
+          level: homeworkLevel,
+          task: homeworkTask
+        });
+        setHomeworkSolution(result);
+      } else {
+        // Имитация решения
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        setHomeworkSolution(`Пример решения задания по ${homeworkSubject}:
+
+Шаг 1: Анализ условия...
+Шаг 2: Применение формул...
+Шаг 3: Вычисления...
+
+Для полного решения настройте OpenAI API.`);
+      }
+    } catch (error) {
+      console.error('Error solving homework:', error);
+      setHomeworkSolution('Ошибка решения. Проверьте настройки API.');
+    } finally {
+      setIsProcessingHomework(false);
+    }
   };
 
   const handleTariffPurchase = (tariffId: string) => {
@@ -177,6 +255,15 @@ const Index = () => {
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Тарифы</a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Примеры</a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Блог</a>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowAPISettings(!showAPISettings)}
+              className={apiConfigured ? "border-green-500 text-green-600" : ""}
+            >
+              <Icon name="Settings" size={14} className="mr-1" />
+              API
+            </Button>
             <Button variant="outline" size="sm">Войти</Button>
             <Button size="sm">Начать</Button>
           </nav>
@@ -233,6 +320,32 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* API Settings Modal */}
+      {showAPISettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Настройки OpenAI API</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowAPISettings(false)}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+              <APISettings onConfigured={(configured) => {
+                setApiConfigured(configured);
+                if (configured) {
+                  setShowAPISettings(false);
+                }
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Generator */}
       <section className="py-16 px-4">
