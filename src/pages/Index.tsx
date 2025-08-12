@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import FileUpload from '@/components/FileUpload';
 
 const Index = () => {
   const [workType, setWorkType] = useState('');
@@ -425,6 +426,27 @@ const Index = () => {
                     />
                     <p className="text-sm text-muted-foreground mt-2">
                       Символов: {homeworkTask.length} / 2,000
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-base font-medium mb-3 block">
+                      Прикрепить файлы
+                    </Label>
+                    <FileUpload 
+                      onTextExtracted={(text) => {
+                        if (text && text.trim()) {
+                          setHomeworkTask(prev => {
+                            const newText = prev ? `${prev}\n\n--- Распознанный текст ---\n${text}` : text;
+                            return newText.slice(0, 2000);
+                          });
+                        }
+                      }}
+                      accept="image/*,.pdf,.doc,.docx,.txt"
+                      maxFiles={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Поддерживаются фото задач, PDF документы, Word файлы. Текст будет автоматически распознан и добавлен в поле задания.
                     </p>
                   </div>
 
