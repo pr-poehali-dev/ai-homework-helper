@@ -191,7 +191,7 @@ const Index = () => {
             Powered by AI
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Академические работы — <br />
+            Академические работы и домашние задания — <br />
             <span className="text-primary">написаны на 90% быстрее</span> с ИИ
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
