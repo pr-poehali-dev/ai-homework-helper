@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import FileUpload from '@/components/FileUpload';
 import APISettings from '@/components/APISettings';
+import PaymentForm from '@/components/PaymentForm';
 import { getOpenAIService, isOpenAIConfigured } from '@/services/openai';
+import { paymentService } from '@/services/payment';
 
 const Index = () => {
   const [workType, setWorkType] = useState('');
@@ -32,6 +34,9 @@ const Index = () => {
   const [generatedWork, setGeneratedWork] = useState<string>('');
   const [homeworkSolution, setHomeworkSolution] = useState<string>('');
   const [plagiarismReport, setPlagiarismReport] = useState<string>('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{id: string, name: string, price: number} | null>(null);
+  const [activeSubscription, setActiveSubscription] = useState(paymentService.getActiveSubscription());
 
   const workTypes = [
     { value: 'essay', label: 'Реферат', description: 'Краткое изложение темы, 10-15 страниц' },
@@ -199,6 +204,23 @@ const Index = () => {
     }
   };
 
+  const handlePurchase = (plan: {id: string, name: string, price: number}) => {
+    setSelectedPlan(plan);
+    setShowPaymentForm(true);
+  };
+
+  const handlePaymentSuccess = (transactionId: string) => {
+    console.log('Payment successful:', transactionId);
+    setActiveSubscription(paymentService.getActiveSubscription());
+    setShowPaymentForm(false);
+    setSelectedPlan(null);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentForm(false);
+    setSelectedPlan(null);
+  };
+
   const handleHomeworkSolve = async () => {
     if (!homeworkSubject || !homeworkTask) return;
     
@@ -234,9 +256,14 @@ const Index = () => {
   };
 
   const handleTariffPurchase = (tariffId: string) => {
-    setSelectedTariff(tariffId);
-    // Здесь будет интеграция с системой оплаты
-    alert(`Выбран тариф: ${tariffPlans.find(t => t.id === tariffId)?.name}`);
+    const plan = tariffPlans.find(t => t.id === tariffId);
+    if (plan) {
+      handlePurchase({
+        id: plan.id,
+        name: plan.name,
+        price: plan.price
+      });
+    }
   };
 
   return (
@@ -255,6 +282,12 @@ const Index = () => {
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Тарифы</a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Примеры</a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Блог</a>
+            {activeSubscription && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                <Icon name="Crown" size={16} className="text-primary" />
+                <span className="text-sm font-medium text-primary">Premium</span>
+              </div>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
@@ -864,6 +897,17 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Payment Form Modal */}
+      {showPaymentForm && selectedPlan && (
+        <PaymentForm
+          planId={selectedPlan.id}
+          planName={selectedPlan.name}
+          amount={selectedPlan.price}
+          onSuccess={handlePaymentSuccess}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   );
 };
