@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,10 @@ const Index = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{id: string, name: string, price: number} | null>(null);
   const [activeSubscription, setActiveSubscription] = useState(paymentService.getActiveSubscription());
+
+  useEffect(() => {
+    setApiConfigured(isOpenAIConfigured());
+  }, []);
 
   const workTypes = [
     { value: 'essay', label: 'Реферат', description: 'Краткое изложение темы, 10-15 страниц' },
@@ -303,7 +307,10 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setShowAPISettings(!showAPISettings)}
+              onClick={() => {
+                console.log('API button clicked, showAPISettings:', showAPISettings);
+                setShowAPISettings(!showAPISettings);
+              }}
               className={apiConfigured ? "border-green-500 text-green-600" : ""}
             >
               <Icon name="Settings" size={14} className="mr-1" />
@@ -368,8 +375,15 @@ const Index = () => {
 
       {/* API Settings Modal */}
       {showAPISettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAPISettings(false);
+            }
+          }}
+        >
+          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Настройки OpenAI API</h2>
