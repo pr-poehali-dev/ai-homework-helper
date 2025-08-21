@@ -12,6 +12,7 @@ import Icon from '@/components/ui/icon';
 import FileUpload from '@/components/FileUpload';
 import APISettings from '@/components/APISettings';
 import PaymentForm from '@/components/PaymentForm';
+import APIKeyManager from '@/components/APIKeyManager';
 import { getOpenAIService, isOpenAIConfigured } from '@/services/openai';
 import { paymentService } from '@/services/payment';
 
@@ -28,6 +29,7 @@ const Index = () => {
   const [homeworkTask, setHomeworkTask] = useState('');
   const [homeworkLevel, setHomeworkLevel] = useState('');
   const [selectedTariff, setSelectedTariff] = useState('');
+  const [showAPIKeys, setShowAPIKeys] = useState(false);
   const [isProcessingHomework, setIsProcessingHomework] = useState(false);
   const [showAPISettings, setShowAPISettings] = useState(false);
   const [apiConfigured, setApiConfigured] = useState(false);
@@ -288,6 +290,15 @@ const Index = () => {
                 <span className="text-sm font-medium text-primary">Premium</span>
               </div>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAPIKeys(!showAPIKeys)}
+              className="flex items-center gap-2"
+            >
+              <Icon name="Key" size={16} />
+              API Ключи
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 
@@ -375,6 +386,30 @@ const Index = () => {
                   setShowAPISettings(false);
                 }
               }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API Keys Manager Modal */}
+      {showAPIKeys && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Icon name="Key" size={20} />
+                  Управление API ключами
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowAPIKeys(false)}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+              <APIKeyManager projectId="default-project" />
             </div>
           </div>
         </div>
