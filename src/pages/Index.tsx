@@ -44,7 +44,8 @@ const Index = () => {
     { value: 'essay', label: 'Реферат', description: 'Краткое изложение темы, 10-15 страниц' },
     { value: 'coursework', label: 'Курсовая работа', description: 'Глубокое исследование, 30-50 страниц' },
     { value: 'diploma', label: 'Дипломная работа', description: 'Выпускная работа, 60-100 страниц' },
-    { value: 'thesis', label: 'Диссертация', description: 'Научное исследование, 100+ страниц' }
+    { value: 'thesis', label: 'Диссертация', description: 'Научное исследование, 100+ страниц' },
+    { value: 'homework', label: 'Домашнее задание', description: 'Решение задач и упражнений, 1-5 страниц' }
   ];
 
   const homeworkSubjects = [
