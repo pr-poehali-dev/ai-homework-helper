@@ -405,10 +405,9 @@ const Index = () => {
               </div>
               <div className="mt-4">
                 <APISettings onConfigured={(configured) => {
+                  console.log('APISettings onConfigured called with:', configured);
                   setApiConfigured(configured);
-                  if (configured) {
-                    setShowAPISettings(false);
-                  }
+                  // Не закрываем модалку автоматически при загрузке
                 }} />
               </div>
             </div>
