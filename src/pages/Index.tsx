@@ -376,17 +376,17 @@ const Index = () => {
       {/* API Settings Modal */}
       {showAPISettings && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowAPISettings(false);
             }
           }}
         >
-          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border shadow-xl">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Настройки OpenAI API</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Настройки OpenAI API</h2>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -395,12 +395,19 @@ const Index = () => {
                   <Icon name="X" size={20} />
                 </Button>
               </div>
-              <APISettings onConfigured={(configured) => {
-                setApiConfigured(configured);
-                if (configured) {
-                  setShowAPISettings(false);
-                }
-              }} />
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  Тест модального окна работает! Компонент APISettings будет загружен ниже:
+                </p>
+              </div>
+              <div className="mt-4">
+                <APISettings onConfigured={(configured) => {
+                  setApiConfigured(configured);
+                  if (configured) {
+                    setShowAPISettings(false);
+                  }
+                }} />
+              </div>
             </div>
           </div>
         </div>
