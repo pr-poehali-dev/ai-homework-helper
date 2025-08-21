@@ -308,8 +308,10 @@ const Index = () => {
               variant="outline" 
               size="sm" 
               onClick={() => {
-                console.log('API button clicked, showAPISettings:', showAPISettings);
-                setShowAPISettings(!showAPISettings);
+                console.log('API button clicked, current showAPISettings:', showAPISettings);
+                const newState = !showAPISettings;
+                setShowAPISettings(newState);
+                console.log('Setting showAPISettings to:', newState);
               }}
               className={apiConfigured ? "border-green-500 text-green-600" : ""}
             >
@@ -374,6 +376,7 @@ const Index = () => {
       </section>
 
       {/* API Settings Modal */}
+      {console.log('Rendering modal, showAPISettings:', showAPISettings)}
       {showAPISettings && (
         <div 
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
