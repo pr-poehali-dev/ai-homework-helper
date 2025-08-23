@@ -24,7 +24,7 @@ interface OpenAIResponse {
 }
 
 class OpenAIService {
-  private config: OpenAIConfig;
+  public config: OpenAIConfig;
 
   constructor(config: OpenAIConfig) {
     this.config = {
@@ -37,6 +37,10 @@ class OpenAIService {
 
   private async makeRequest(messages: ChatMessage[]): Promise<OpenAIResponse> {
     try {
+      if (!this.config.apiKey || this.config.apiKey.trim() === '') {
+        throw new Error('API ключ не установлен. Откройте настройки API и введите ваш OpenAI API ключ.');
+      }
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -52,7 +56,14 @@ class OpenAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        const errorData = await response.text();
+        if (response.status === 401) {
+          throw new Error('Неверный API ключ. Проверьте ваш OpenAI API ключ в настройках.');
+        } else if (response.status === 404) {
+          throw new Error('API ключ не найден или неактивен. Проверьте ваш OpenAI API ключ.');
+        } else {
+          throw new Error(`OpenAI API ошибка: ${response.status} ${response.statusText}. ${errorData}`);
+        }
       }
 
       return await response.json();
@@ -188,7 +199,7 @@ export const initializeOpenAI = (config: OpenAIConfig): void => {
 };
 
 export const isOpenAIConfigured = (): boolean => {
-  return openAIService !== null;
+  return openAIService !== null && openAIService.config?.apiKey?.trim() !== '';
 };
 
 export type { OpenAIConfig, ChatMessage, OpenAIResponse };
