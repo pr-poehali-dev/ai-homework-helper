@@ -73,6 +73,13 @@ class OpenAIService {
     }
   }
 
+  async chat(messages: ChatMessage[]): Promise<{ content: string }> {
+    const response = await this.makeRequest(messages);
+    return {
+      content: response.choices[0]?.message?.content || 'Нет ответа от API'
+    };
+  }
+
   async generateAcademicWork(params: {
     workType: string;
     topic: string;

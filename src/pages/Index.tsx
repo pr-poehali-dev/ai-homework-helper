@@ -13,6 +13,7 @@ import FileUpload from '@/components/FileUpload';
 import APISettings from '@/components/APISettings';
 import PaymentForm from '@/components/PaymentForm';
 import APIKeyManager from '@/components/APIKeyManager';
+import WorkTypeDialog from '@/components/WorkTypeDialog';
 import { getOpenAIService, isOpenAIConfigured } from '@/services/openai';
 import { paymentService } from '@/services/payment';
 
@@ -39,6 +40,7 @@ const Index = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{id: string, name: string, price: number} | null>(null);
   const [activeSubscription, setActiveSubscription] = useState(paymentService.getActiveSubscription());
+  const [showWorkTypeDialog, setShowWorkTypeDialog] = useState(false);
 
   useEffect(() => {
     setApiConfigured(isOpenAIConfigured());
@@ -273,6 +275,18 @@ const Index = () => {
     }
   };
 
+  const handleWorkTypeSelected = (workData: {
+    workType: string;
+    topic: string;
+    requirements: string;
+    pages: string;
+  }) => {
+    setWorkType(workData.workType);
+    setTopic(workData.topic);
+    setRequirements(workData.requirements);
+    setPages(workData.pages);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary">
       {/* Header */}
@@ -466,81 +480,114 @@ const Index = () => {
                     Генератор академических работ
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Укажите тип работы и тему — ИИ создаст уникальный текст с научными источниками
+                    Опишите свою задачу ИИ-помощнику — он поможет подобрать тип работы и требования
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="work-type" className="text-base font-medium mb-3 block">
-                        Тип работы
-                      </Label>
-                      <Select value={workType} onValueChange={setWorkType}>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder="Выберите тип работы" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {workTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{type.label}</span>
-                                <span className="text-sm text-muted-foreground">{type.description}</span>
+                  {!workType ? (
+                    <div className="text-center py-12">
+                      <div className="mb-6">
+                        <Icon name="MessageCircle" size={48} className="mx-auto text-primary mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">Расскажите о своей задаче</h3>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          ИИ-помощник задаст уточняющие вопросы и поможет правильно сформулировать требования к работе
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={() => setShowWorkTypeDialog(true)}
+                        size="lg"
+                        className="h-12 px-8"
+                      >
+                        <Icon name="Sparkles" size={20} className="mr-2" />
+                        Начать диалог с ИИ
+                      </Button>
+                      
+                      <div className="mt-8">
+                        <p className="text-sm text-muted-foreground mb-4">Или выберите готовый вариант:</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                          {workTypes.slice(0, 4).map((type) => (
+                            <Button
+                              key={type.value}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setWorkType(type.value);
+                                setPages(type.value === 'essay' ? '15' : type.value === 'coursework' ? '40' : type.value === 'diploma' ? '80' : '3');
+                              }}
+                              className="h-auto p-4 text-left"
+                            >
+                              <div>
+                                <div className="font-medium text-sm">{type.label}</div>
+                                <div className="text-xs text-muted-foreground mt-1">{type.description.split(',')[1]?.trim() || type.description}</div>
                               </div>
-                            </SelectItem>
+                            </Button>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="pages" className="text-base font-medium mb-3 block">
-                        Количество страниц
-                      </Label>
-                      <Input 
-                        id="pages"
-                        placeholder="Например: 20"
-                        value={pages}
-                        onChange={(e) => setPages(e.target.value)}
-                        className="h-12"
-                      />
-                    </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div>
+                          <h4 className="font-medium text-green-800">
+                            {workTypes.find(t => t.value === workType)?.label} 
+                            {pages && ` (${pages} стр.)`}
+                          </h4>
+                          {topic && <p className="text-sm text-green-700">Тема: {topic}</p>}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setWorkType('');
+                            setTopic('');
+                            setRequirements('');
+                            setPages('');
+                          }}
+                        >
+                          <Icon name="Edit" size={16} className="mr-1" />
+                          Изменить
+                        </Button>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="topic" className="text-base font-medium mb-3 block">
+                          Тема работы
+                        </Label>
+                        <Input 
+                          id="topic"
+                          placeholder="Например: Влияние искусственного интеллекта на современное образование"
+                          value={topic}
+                          onChange={(e) => setTopic(e.target.value)}
+                          className="h-12 text-base"
+                        />
+                      </div>
 
-                  <div>
-                    <Label htmlFor="topic" className="text-base font-medium mb-3 block">
-                      Тема работы
-                    </Label>
-                    <Input 
-                      id="topic"
-                      placeholder="Например: Влияние искусственного интеллекта на современное образование"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      className="h-12 text-base"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="requirements" className="text-base font-medium mb-3 block">
-                      Дополнительные требования
-                    </Label>
-                    <Textarea 
-                      id="requirements"
-                      placeholder="Укажите особые требования к работе: стиль цитирования, количество источников, структура..."
-                      value={requirements}
-                      onChange={(e) => setRequirements(e.target.value)}
-                      className="min-h-[120px] text-base"
-                    />
-                  </div>
-
-                  {workType && (
-                    <div className="bg-muted/50 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <Icon name="Info" size={16} className="mr-2" />
-                        {workTypes.find(t => t.value === workType)?.label}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {workTypes.find(t => t.value === workType)?.description}
-                      </p>
+                      <div>
+                        <Label htmlFor="requirements" className="text-base font-medium mb-3 block">
+                          Дополнительные требования
+                        </Label>
+                        <Textarea 
+                          id="requirements"
+                          placeholder="Укажите особые требования к работе: стиль цитирования, количество источников, структура..."
+                          value={requirements}
+                          onChange={(e) => setRequirements(e.target.value)}
+                          className="min-h-[120px] text-base"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="pages" className="text-base font-medium mb-3 block">
+                          Количество страниц
+                        </Label>
+                        <Input 
+                          id="pages"
+                          placeholder="Например: 20"
+                          value={pages}
+                          onChange={(e) => setPages(e.target.value)}
+                          className="h-12"
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -967,6 +1014,13 @@ const Index = () => {
           onCancel={handlePaymentCancel}
         />
       )}
+
+      {/* Work Type Dialog */}
+      <WorkTypeDialog
+        isOpen={showWorkTypeDialog}
+        onClose={() => setShowWorkTypeDialog(false)}
+        onWorkTypeSelected={handleWorkTypeSelected}
+      />
     </div>
   );
 };
